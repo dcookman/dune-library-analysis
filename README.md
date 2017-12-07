@@ -1,0 +1,2 @@
+# mastersProject
+Code adapted / written for my masters project: Detecting supernova neutrinos in liquid argon. The code is simulates the response of the light detection system of SBND (a Liquid Argon Time Projection Chamber) for either electron and alpha particle induced scintillation. By analysing the generated root files, cuts to discriminate between these two types of induced scintillation are also explored.
