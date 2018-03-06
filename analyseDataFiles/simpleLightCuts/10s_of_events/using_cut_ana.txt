@@ -1,9 +1,7 @@
 Using the cut_ana.cc script
 
 The .cc file uses int main(int argc, char* argv[]){
-which is not the usual C++ main of: int main(){
-
-Thus when running the executable (./cut_ana) all components of the argument vector must be inputted.
+ - Thus when running the executable (./cut_ana) all components of the argument vector must be inputted.
 
 From the .cc script: 
 argv[1] = libraryfile1 - the .root file you wish to read the library file from
@@ -14,6 +12,7 @@ Thus one the file has been made using: make -B
 
 The executable can be run by using a command of the form:
 
-./cut_ana ../requiredfile.root cut_number pmt_cut_number
+./cut_ana <pathway_to_required_root_file> <cut_number> <pmt_cut_number>
 
-A very specific example used from the current directory was: ./cut_ana ../eventFiles_withTimings/10s_sn_randompos.root 2 8
+A very specific example used from the current directory is:
+./cut_ana ../eventFiles_withTimings/10s_sn_randompos.root 2 8
