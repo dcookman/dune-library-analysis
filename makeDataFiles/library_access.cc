@@ -70,9 +70,14 @@ void LibraryAccess::LoadLibraryFromFile(std::string libraryfile, bool reflected,
 	if(reflT0) {tt->SetBranchAddress("ReflTfirst", &reflT); }
 
 	size_t nentries = tt->GetEntries();
-
+    int j = 1;
 	for(size_t i=0; i!=nentries; ++i)
-	{
+	{   
+	    if ( (i % (nentries/10) == 0) && (i != 0) ) {
+            cout << Form("%i0%% Completed...\n", j);
+            j++;
+        }
+        
 		tt->GetEntry(i);
 		if((voxel<0)||(voxel>= maxvoxel)||(opChannel<0)||(opChannel>= maxopChannel))
 		{}
@@ -89,6 +94,7 @@ void LibraryAccess::LoadLibraryFromFile(std::string libraryfile, bool reflected,
 	try
 	{
 		f->Close();
+		cout << "Photon Library opened successfully!\n";
 	}
 	catch(...)
 	{

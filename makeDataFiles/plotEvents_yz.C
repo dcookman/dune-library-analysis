@@ -1,4 +1,4 @@
--// File to read event_file.root, take the data and plot sensible histograms regarding the Ar 39 decays (mainly the positions). 
+// File to read event_file.root, take the data and plot sensible histograms regarding the Ar 39 decays (mainly the positions). 
 
 
 // Important to note

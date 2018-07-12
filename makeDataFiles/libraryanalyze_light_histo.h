@@ -34,9 +34,14 @@ bool sort_function(std::pair<double, int> pair1, std::pair<double, int> pair2)
 //--------WHAT to generate?-------------
 ///-------------------------------------
 bool fixed_energy = false; double fixedE = 5.590; //MeV
-bool supernova = false;
+bool supernova = true;
 bool gen_argon = false;
-bool gen_radon = true;
+bool gen_radon = false;
+///-------------------------------------
+///-------------------------------------
+///-------DO TIMING CALCULATIONS?-------
+///-------------------------------------
+bool do_timings = false;
 ///-------------------------------------
 //--------WHERE to generate?-------------
 ///-------------------------------------
@@ -101,6 +106,8 @@ double data_y_pos_vuv;
 double data_y_pos_vis;
 
 double data_z_pos;
+double data_z_pos_vuv;
+double data_z_pos_vis;
 
 int event_no;
 int event_vox;
@@ -161,7 +168,7 @@ const int max_events_Rn = 10;
 const double Rn_decays_per_sec = activity_Rn* mass/2; // decay rate in one TPC
 
 // Supernova events:
-const int max_events_SN = 10000;
+const int max_events_SN = 200;
 //int max_events_SN = utility::poisson(expected_sn,gRandom->Uniform(1.),1.);
 
 
@@ -183,7 +190,7 @@ vector<int> voxel_list;
 //--------------------------------------
 //--Predefined number of PMTs for-------
 //--SBND configuration------------------
-int realisticPMT_IDs[60] = {0, 4, 8, 12, 16, 20, 24, 32, 40, 44, 48, 52, 56, 60, 64, 88, 92, 96, 100, 104, 108, 112, 120, 128, 132, 136, 140, 144, 148, 152, 154, 158, 162, 166, 170, 174, 178, 186, 194, 198, 202, 206, 210, 214, 218, 242, 246, 250, 254, 258, 262, 266, 274, 282, 286, 290, 294, 298, 302, 306};
+//int realisticPMT_IDs[60] = {0, 4, 8, 12, 16, 20, 24, 32, 40, 44, 48, 52, 56, 60, 64, 88, 92, 96, 100, 104, 108, 112, 120, 128, 132, 136, 140, 144, 148, 152, 154, 158, 162, 166, 170, 174, 178, 186, 194, 198, 202, 206, 210, 214, 218, 242, 246, 250, 254, 258, 262, 266, 274, 282, 286, 290, 294, 298, 302, 306};
 //--------------------------------------
 //--------------------------------------
 //--For timing parameterization---------
