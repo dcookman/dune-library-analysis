@@ -1,5 +1,6 @@
 # makeDataFiles
-Low energy event light simulations in SBND.
+Low energy event light simulations in DUNE.
+N.B. : A lot of what follows is taken wholesale from James Ennis et al's SBND code, and adapted for DUNE. The rest of this text file was written by my predeccesors, so don't take all of it as gospel, 'cause it might not work now for DUNE!
 
 Code capable of simulating the induced scintillation of low energy events (specifically supernova neutrinos, argon-39 beta decay and radon-222 alpha decay) occuring within the active volume of SBND (200 by 400 by 500 cm) for different configurations of TPB-coated, wavelength-shifting reflector foils.
 
