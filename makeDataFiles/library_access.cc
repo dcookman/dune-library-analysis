@@ -169,7 +169,7 @@ int LibraryAccess::GetVoxelID(double* Position) //const
 
 //This function takes is most of the information needed to calculate the number
 //of photoelectrons on a given PMT
-std::vector<double> LibraryAccess::PhotonLibraryAnalyzer(double _energy, const int _scint_yield, const double _quantum_efficiency, int _pmt_number, int _rand_voxel)
+std::vector<double> LibraryAccess::PhotonLibraryAnalyzer(double _energy, const int _scint_yield, const double _quantum_efficiency, const double _catcov, const double _vuvfrac, const double _visfrac, int _pmt_number, int _rand_voxel)
 {
 	//The number of photons created is determined by this formula:
 	//Nphotons_created = Poisson < Scintillation Yield (24000/MeV) * dE/dX (MeV)>
@@ -177,6 +177,9 @@ std::vector<double> LibraryAccess::PhotonLibraryAnalyzer(double _energy, const i
 	const int scint_yield = _scint_yield;
 	const double quantum_efficiency = _quantum_efficiency;
 	double energy = _energy;
+	const double catcov = _catcov;
+	const double vuvfrac = _vuvfrac;
+	const double visfrac = _visfrac;
   int i = _rand_voxel;
   vector<double> pmt_hits;
 
@@ -215,11 +218,11 @@ std::vector<double> LibraryAccess::PhotonLibraryAnalyzer(double _energy, const i
 
 	for(int i = 0; i < int_hits_vuv; i++)
 	{
-		if(gRandom->Uniform(1.) <= quantum_efficiency){total_hits_vuv++;}
+		if(gRandom->Uniform(1.) <= vuvfrac*quantum_efficiency){total_hits_vuv++;}
 	}
 	for(int j = 0; j < int_hits_vis; j++)
 	{
-		if(gRandom->Uniform(1.) <= quantum_efficiency){total_hits_vis++;}
+		if(gRandom->Uniform(1.) <= catcov*visfrac*quantum_efficiency){total_hits_vis++;}
 	}
 
   //Push information back into a vector to readout in:

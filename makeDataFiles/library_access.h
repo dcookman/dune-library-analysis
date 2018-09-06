@@ -18,7 +18,7 @@ class LibraryAccess{
     const float* GetLibraryEntries(int VoxID, bool wantReflected, int no_pmt);
     std::vector<int> GetVoxelCoords(int id, double position[3]);
     int GetVoxelID(double* Position);
-    std::vector<double> PhotonLibraryAnalyzer(double _energy, const int _scint_yield, const double _quantum_efficiency, int _pmt_number, int _rand_voxel);
+    std::vector<double> LibraryAccess::PhotonLibraryAnalyzer(double _energy, const int _scint_yield, const double _quantum_efficiency, const double _catcov, const double _vuvfrac, const double _visfrac, int _pmt_number, int _rand_voxel);
 
     LibraryAccess();
 
@@ -26,12 +26,12 @@ class LibraryAccess{
     std::vector<std::vector<float> > table_;
     std::vector<std::vector<float> > reflected_table_;
     std::vector<std::vector<float> > reflT_table_;
-
-    const double gLowerCorner[3] = {2.5, -200, 0};
-    const double gUpperCorner[3] = {202.5, 200, 500};
-    const int gxSteps = 40;
-    const int gySteps = 80;
-    const int gzSteps = 100;
+    // EDITED FOR DUNE
+    const double gLowerCorner[3] = {0., -658.099, -302.946};
+    const double gUpperCorner[3] = {379.662, 699.599, 1443.53};
+    const int gxSteps = 75;
+    const int gySteps = 125;
+    const int gzSteps = 300;
 
 
 
