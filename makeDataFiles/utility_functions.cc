@@ -3,7 +3,8 @@
 #include "TMath.h"
 #include "TVector3.h"
 #include "TF1.h"
-
+#include "TRandom.h"
+#include <chrono>
 //Poisson Distribution
 int utility::poisson(double mean, double draw, double eng)
 {
@@ -171,73 +172,108 @@ std::vector<double> utility::GetVUVTime(double distance, int number_photons) {
 	//-----Distances in cm and times in ns-----//
 
 	//gRandom->SetSeed(0);
-
+    std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
 	std::vector<double> arrival_time_distrb;
 	arrival_time_distrb.clear();
 	arrival_time_distrb.reserve(number_photons);
-	// Parametrization data:
-	double landauNormpars[8] = {7.85903, -0.108075, 0.00110999, -6.90009e-06,
-		                    2.52576e-08, -5.39078e-11, 6.20863e-14, -2.97559e-17};
-	double landauMPVpars[5] = {1.20259, 0.0582674, 0.000308053, -2.71782e-07, -3.37159e-10};
-	double landauWidthpars[4] = {0.346667, -0.00768231, 0.000211825, -3.81361e-07};
-	double expoCtepars[7] = {13.6592, -0.188798, 0.00192431, -1.10689e-05, 3.38425e-08,
-		                 -5.20737e-11, 3.17657e-14};
-	double expoSlopepars[8] = {-0.57011, 0.0156393, -0.000197461, 1.34491e-06, -5.24544e-09,
-		                   1.1703e-11, -1.38811e-14, 6.78368e-18};
+	
 	//range of distances where the parametrization is valid [~10 - 500cm], then:
-	const double d_break = 500.;
-	const double d_max = 750.;
-	// Defining the function for the different parameters:
-	TF1 fparslogNorm ("fparslogNorm","pol7",0,d_break);
-	fparslogNorm.SetParameters(landauNormpars);
-	TF1 fparsMPV ("fparsMPV","pol4",0,d_break);
-	fparsMPV.SetParameters(landauMPVpars);
-	TF1 fparsWidth ("fparsWidth","pol3",0,d_break);
-	fparsWidth.SetParameters(landauWidthpars);
-	TF1 fparsCte ("fparsCte","pol6",0,d_break);
-	fparsCte.SetParameters(expoCtepars);
-	TF1 fparsSlope ("fparsSlope","pol7",0,d_break);
-	fparsSlope.SetParameters(expoSlopepars);
-	// At long distances we extrapolate the behaviour of the parameters:
-	TF1 fparslogNorm_far ("fparslogNorm_far","expo",d_break, d_max);
-	double landauNormpars_far[2] = {2.23151, -0.00627503};
-	fparslogNorm_far.SetParameters(landauNormpars_far);
-	TF1 fparsMPV_far ("fparsMPV_far","pol1",d_break, d_max);
-	double landauMPVpars_far[2] = {-3.04952, 0.128638};
-	fparsMPV_far.SetParameters(landauMPVpars_far);
-	TF1 fparsCte_far ("fparsCte_far","expo",d_break-50., d_max);
-	double expoCtepars_far[2] = {3.69578, -0.00989582};
-	fparsCte_far.SetParameters(expoCtepars_far);
+    const double d_break = 500.;
+    const double d_max = 750.;
 
-	if(distance < 10 || distance > d_max) {
+	if(distance < 10 /*|| distance > d_max*/) {
 		//std::cout<<"WARNING: Parametrization of Direct Light not fully reliable"<<std::endl;
 		//std::cout<<"Too close/far to the PMT  -> set 0 VUV photons(?)!!!!!!"<<std::endl;
 		return arrival_time_distrb;
 	}
+	if(distance > d_max) {
+	    // TEMP FOR DUNE: If outside parametrization range, just set times at 100. 
+	    arrival_time_distrb.assign(number_photons,10000.);
+	    return arrival_time_distrb;
+	}
+	
+    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+	// Defining the function for the different parameters:
+    TF1 fparslogNorm ("fparslogNorm","pol7",0,d_break);
+    TF1 fparsMPV ("fparsMPV","pol4",0,d_break);
+    TF1 fparsWidth ("fparsWidth","pol3",0,d_break);
+    TF1 fparsCte ("fparsCte","pol6",0,d_break);
+    TF1 fparsSlope ("fparsSlope","pol7",0,d_break);
+
+    // At long distances we extrapolate the behaviour of the parameters:
+    TF1 fparslogNorm_far ("fparslogNorm_far","expo",d_break, d_max);
+    double landauNormpars_far[2] = {2.23151, -0.00627503};
+    TF1 fparsMPV_far ("fparsMPV_far","pol1",d_break, d_max);
+    double landauMPVpars_far[2] = {-3.04952, 0.128638};
+    TF1 fparsCte_far ("fparsCte_far","expo",d_break-50., d_max);
+    double expoCtepars_far[2] = {3.69578, -0.00989582};
+    // Parametrization data:
+    double landauNormpars[8] = {7.85903, -0.108075, 0.00110999, -6.90009e-06,
+		                        2.52576e-08, -5.39078e-11, 6.20863e-14, -2.97559e-17};
+    double landauMPVpars[5] = {1.20259, 0.0582674, 0.000308053, -2.71782e-07, -3.37159e-10};
+    double landauWidthpars[4] = {0.346667, -0.00768231, 0.000211825, -3.81361e-07};
+    double expoCtepars[7] = {13.6592, -0.188798, 0.00192431, -1.10689e-05, 3.38425e-08,
+		                     -5.20737e-11, 3.17657e-14};
+    double expoSlopepars[8] = {-0.57011, 0.0156393, -0.000197461, 1.34491e-06, -5.24544e-09,
+		                       1.1703e-11, -1.38811e-14, 6.78368e-18};
+
+    // This ensures the parameter functions are setup only once ever
+    bool setup_VUV_params = true;
+
+    std::vector<std::vector<double>> VUVTRange = { { 0.30000000, 12.300000 }, { 1.0000000, 18.100000 }, { 1.7000000, 26.000000 }, { 2.2000000, 35.900000 }, { 3.0000000, 48.300000 }, { 3.1000000, 62.800000 }, { 4.0000000, 79.300000 }, { 4.0000000, 96.400000 }, { 4.1000000, 112.60000 }, { 4.3000000, 127.30000 }, { 5.0000000, 139.90000 }, { 5.1000000, 150.10000 }, { 5.4000000, 159.40000 }, { 5.9000000, 167.90000 }, { 5.2000000, 177.00000 }, { 6.0000000, 186.30000 }, { 5.0000000, 197.90000 }, { 6.4000000, 209.70000 }, { 6.5000000, 224.20000 }, { 7.1000000, 239.60000 }, { 6.8000000, 255.10000 }, { 7.1000000, 272.00000 }, { 7.5000000, 286.90000 }, { 7.7000000, 301.40000 }, { 8.1000000, 312.10000 }, { 8.9000000, 320.60000 }, { 10.000000, 325.60000 }, { 8.9000000, 328.00000 }, { 10.700000, 327.80000 }, { 11.400000, 326.90000 }, { 11.300000, 325.00000 }, { 11.300000, 324.80000 }, { 13.900000, 324.90000 }, { 14.800000, 327.40000 }, { 14.300000, 330.10000 }, { 16.200000, 336.80000 }, { 18.600000, 343.00000 }, { 19.000000, 350.20000 }, { 21.200000, 358.40000 }, { 22.800000, 362.40000 }, { 25.000000, 366.30000 }, { 26.900000, 366.50000 }, { 27.300000, 361.40000 }, { 30.400000, 352.90000 }, { 32.500000, 341.60000 }, { 35.100000, 345.40000 }, { 36.400000, 347.40000 }, { 40.300000, 348.60000 }, { 42.900000, 350.20000 }, { 45.400000, 351.90000 }, { 56.000000, 361.40000 }, { 57.100000, 362.90000 }, { 58.300000, 364.00000 }, { 60.000000, 365.50000 }, { 61.000000, 366.90000 }, { 62.100000, 368.20000 }, { 63.200000, 369.10000 }, { 64.500000, 370.60000 }, { 66.100000, 370.90000 }, { 67.300000, 373.30000 }, { 68.300000, 374.00000 }, { 70.000000, 374.40000 }, { 71.100000, 376.40000 }, { 72.900000, 377.80000 }, { 74.000000, 378.60000 }, { 75.000000, 379.60000 }, { 76.500000, 381.40000 }, { 77.000000, 425.40000 }, { 79.000000, 426.30000 }, { 80.000000, 426.80000 }, { 81.100000, 428.20000 }, { 82.300000, 429.30000 }, { 84.000000, 429.40000 }, { 85.100000, 430.30000 }, { 87.000000, 431.40000 } };
+
+
+	if(setup_VUV_params) {
+        fparslogNorm.SetParameters(landauNormpars);
+	    fparsMPV.SetParameters(landauMPVpars);
+	    fparsWidth.SetParameters(landauWidthpars);
+	    fparsCte.SetParameters(expoCtepars);
+	    fparsSlope.SetParameters(expoSlopepars);
+	    //For far cases
+	    fparslogNorm_far.SetParameters(landauNormpars_far);
+	    fparsMPV_far.SetParameters(landauMPVpars_far);
+	    fparsCte_far.SetParameters(expoCtepars_far);
+	    //
+	    setup_VUV_params = false;
+	}
+	std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
 	//signals (remember this is transportation) no longer than 1us
-	const double signal_t_range = 1000.;
+	int i = (distance - 10.)/10.;
+    
+    double xmin = VUVTRange[i][0];
+    double xmax = VUVTRange[i][1];
+	const double signal_t_range = xmax;
 	const double vuv_vgroup = 10.13;//cm/ns
 	double t_direct = distance/vuv_vgroup;
 
 	// Defining the two functions (Landau + Exponential) describing the timing vs distance
-	double pars_landau[3]= {fparsMPV.Eval(distance), fparsWidth.Eval(distance),
-		                pow(10.,fparslogNorm.Eval(distance))};
+	double pars_landau[3];
 	if(distance > d_break) {
 		pars_landau[0]=fparsMPV_far.Eval(distance);
 		pars_landau[1]=fparsWidth.Eval(d_break);
 		pars_landau[2]=pow(10.,fparslogNorm_far.Eval(distance));
 	}
+	else {
+	    pars_landau[0] = fparsMPV.Eval(distance);
+	    pars_landau[1] = fparsWidth.Eval(distance);
+	    pars_landau[2] = pow(10.,fparslogNorm.Eval(distance));
+	}
 	TF1 flandau ("flandau","[2]*TMath::Landau(x,[0],[1])",0,signal_t_range/2);
 	flandau.SetParameters(pars_landau);
 
-	double pars_expo[2] = {fparsCte.Eval(distance), fparsSlope.Eval(distance)};
+	double pars_expo[2];
 	if(distance > (d_break - 50.)) {
 		pars_expo[0] = fparsCte_far.Eval(distance);
 		pars_expo[1] = fparsSlope.Eval(d_break - 50.);
 	}
+	else {
+	    pars_expo[0] = fparsCte.Eval(distance);
+	    pars_expo[1] = fparsSlope.Eval(distance);
+	}
 	TF1 fexpo ("fexpo","expo",0, signal_t_range/2);
 	fexpo.SetParameters(pars_expo);
-
+    
+    std::chrono::steady_clock::time_point t3 = std::chrono::steady_clock::now();
 	//this is to find the intersection point between the two functions:
 	TF1 fint ("fint",utility::finter_d,flandau.GetMaximumX(),3*t_direct,5);
 	double parsInt[5] = {pars_landau[0], pars_landau[1], pars_landau[2], pars_expo[0], pars_expo[1]};
@@ -247,21 +283,35 @@ std::vector<double> utility::GetVUVTime(double distance, int number_photons) {
 	//the functions must intersect!!!
 	//if(minVal>0.015)
 	//std::cout<<"WARNING: Parametrization of Direct Light discontinuous (landau + expo)!!!!!!"<<std::endl;
-
+    std::chrono::steady_clock::time_point t4 = std::chrono::steady_clock::now();
 
 	TF1 fVUVTiming ("fTiming",utility::LandauPlusExpoFinal,0,signal_t_range,6);
 	double parsfinal[6] = {t_int, pars_landau[0], pars_landau[1], pars_landau[2], pars_expo[0], pars_expo[1]};
 	fVUVTiming.SetParameters(parsfinal);
+	
 	// Set the number of points used to sample the function
-
-	int f_sampling = 1000;
+	int f_sampling = 200;
 	if(distance < 50)
 		f_sampling *= 10;
 	fVUVTiming.SetNpx(f_sampling);
-
+        
+    
+    
+    std::chrono::steady_clock::time_point t5 = std::chrono::steady_clock::now();
 	for(int i=0; i<number_photons; i++)
-		arrival_time_distrb.push_back(fVUVTiming.GetRandom());
+		arrival_time_distrb.push_back(fVUVTiming.GetRandom(xmin,xmax));
+    
+    std::chrono::steady_clock::time_point t6 = std::chrono::steady_clock::now();
 
+    std::chrono::duration<double> time1 = std::chrono::duration_cast<std::chrono::duration<double>>(t1-t0);
+    std::chrono::duration<double> time2 = std::chrono::duration_cast<std::chrono::duration<double>>(t2-t1);
+    std::chrono::duration<double> time3 = std::chrono::duration_cast<std::chrono::duration<double>>(t3-t2);
+    std::chrono::duration<double> time4 = std::chrono::duration_cast<std::chrono::duration<double>>(t4-t3);
+    std::chrono::duration<double> time5 = std::chrono::duration_cast<std::chrono::duration<double>>(t5-t4);
+    std::chrono::duration<double> time6 = std::chrono::duration_cast<std::chrono::duration<double>>(t6-t5);
+    
+    std::cout << number_photons << "\t" << time1.count() << "\t" << time2.count() << "\t" << time3.count() << "\t" << time4.count() << "\t" << time5.count() << "\t" << time6.count() << "\t";
+    std::cout << std::chrono::duration_cast<std::chrono::duration<double>>(t6-t0).count() << std::endl;
 	//deleting ...
 /*
         delete fparslogNorm;
@@ -734,4 +784,192 @@ double utility::TimingParamReflected(TVector3 ScintPoint, TVector3 OpDetPoint ) 
 
 	   return fReflectedTiming->GetRandom();
 	 */
+}
+
+std::vector<double> utility::TimingParamReflected2(TVector3 ScintPoint, TVector3 OpDetPoint ) {
+    //// ALTERED FOR DUNE: Removed multiple reflective walls, as only cathode is
+    //// is relevant here.
+    //
+	// This function takes as input the scintillation point and the optical
+	// detector point (in m), and uses this information to return a photon propagation
+	// time assuming the field cage walls and cathode are covered ~100% uniformly
+	// in TPB reflector foil (100% efficiency for VUV conversion, 95% diffuse
+	// reflectance to blue-visible light).
+	//
+	// Note:  Modeling photon arrival times as a function of scintillation
+	//        position in a fully reflective system is complicated, given there
+	//        is no obvious "distance to PMT" handle we can use to parametrize
+	//        the distribution.  This parametrization is only an approximation
+	//        to this timing, and should be treated accordingly.
+	//
+	//        The arrival time distributions are well-described by the double-
+	//        landau function, DoubleLandauCutoff.  However, this has several
+	//        free parameters that were not able to be parametrized.  So for
+	//        now, we are zeroing-out the second ("fast") landau in the function
+	//        and thus treating it as a single landau with a t0-cutoff.
+	//
+	//        This parametrization was developed specifically for the SBND
+	//        half-TPC (2x4x5m).  It's not yet known if it holds for other
+	//        dimensions.  These dimensions are thus hard-coded in for now.
+	//
+
+	// to match the position of the foils in the gdml file
+	double plane_depth = 363.38405; //NOT CONFIRMED YET
+
+	// Speed of light in LAr, refractive indices
+	double n_LAr_VUV = 2.632;       // Effective index due to group vel.
+	double n_LAr_vis = 1.23;
+	double c_LAr_VUV = 0.12;        // m per s
+	double c_LAr_vis = 0.29979/n_LAr_vis; // m per s
+
+	// TVectors to be used later
+	TVector3 image(0,0,0);
+	TVector3 bounce_point(0,0,0);
+	TVector3 hotspot(0,0,0);
+	TVector3 v_to_wall(0,0,0);
+
+	// First find shortest 1-bounce path and fill
+	// vector of "tAB" paths, each with their weighting:
+	//double t0   = 99;
+	double tAB;
+	//double d0 = 1000;
+	
+	v_to_wall[0] = plane_depth - ScintPoint[0];
+
+	// hotspot is point on wall where TPB is
+	// activated most intensely by the scintillation
+	hotspot = ScintPoint + v_to_wall;
+
+	// define "image" by reflecting over plane
+	image = hotspot + v_to_wall*(n_LAr_vis/n_LAr_VUV);
+
+	// find point of intersection with plane j of ray
+	// from the PMT to the image
+	TVector3 tempvec = (OpDetPoint-image).Unit();
+	double tempnorm= ((image-hotspot).Mag())/abs(tempvec[0]); //added abs() to denom. to ensure +ve norm
+	bounce_point = image + tempvec*tempnorm;
+
+	// find t, check for t0
+	double t1 = (ScintPoint-bounce_point).Mag()/c_LAr_VUV;
+	double t2 = (OpDetPoint-bounce_point).Mag()/c_LAr_vis;
+	double t  = t1 + t2;
+	double d = (ScintPoint-bounce_point).Mag() + (OpDetPoint-bounce_point).Mag();
+
+	double dA = (ScintPoint-hotspot).Mag();
+	double dB = (OpDetPoint-hotspot).Mag();
+	double tA = dA/c_LAr_VUV;
+	double tB = dB/c_LAr_vis;
+	tAB  =  tA + tB;
+	
+	std::vector<double> t_Will= {tAB, t};
+    
+    /*cout << "ScintPoint:\t";        ScintPoint.Print();
+    cout << "OpDetPoint:\t";        OpDetPoint.Print();
+    cout << "image:\t\t";           image.Print();
+    cout << "tempvec:\t";           tempvec.Print();
+    cout << "bounce_point:\t";      bounce_point.Print();
+    cout << "hotspot:\t";           hotspot.Print();*/
+	return t_Will;
+}
+
+TVector3 utility::GetShortestPathPoint(TVector3 ScintPoint, TVector3 OpDetPoint) {
+    /*
+    Determines the position of X, the point at which at photon is reflected on a shortest-time path.
+    For the DUNE detector exclusively.
+    */
+    // to match the position of the foils in the gdml file
+	double plane_depth = 363.38405; //NOT CONFIRMED YET
+
+	// Speed of light in LAr, refractive indices
+	double n_LAr_VUV = 2.632;       // Effective index due to group vel.
+	double n_LAr_vis = 1.23;
+	double c_LAr_VUV = 0.12;        // m per s
+	double c_LAr_vis = 0.29979/n_LAr_vis; // m per s
+
+	// TVectors to be used later
+	TVector3 image(0,0,0);
+	TVector3 bounce_point(0,0,0);
+	TVector3 hotspot(0,0,0);
+	TVector3 v_to_wall(0,0,0);
+
+	// First find shortest 1-bounce path and fill
+	// vector of "tAB" paths, each with their weighting:
+	//double t0   = 99;
+	double tAB;
+	//double d0 = 1000;
+	
+	v_to_wall[0] = plane_depth - ScintPoint[0];
+
+	// hotspot is point on wall where TPB is
+	// activated most intensely by the scintillation
+	hotspot = ScintPoint + v_to_wall;
+
+	// define "image" by reflecting over plane
+	image = hotspot + v_to_wall*(n_LAr_vis/n_LAr_VUV);
+
+	// find point of intersection with plane j of ray
+	// from the PMT to the image
+	TVector3 tempvec = (OpDetPoint-image).Unit();
+	double tempnorm= ((image-hotspot).Mag())/abs(tempvec[0]); //added abs() to denom. to ensure +ve norm
+	bounce_point = image + tempvec*tempnorm;
+    return bounce_point;
+}
+
+std::vector<double> utility::GetReflTime(double distance, int number_photons) {
+    /*
+    Outputs a 1D vector array of times for each produced photon on the visible part of its journey
+    */
+    std::vector<double> ReflTimes(number_photons,0);
+    double mean_v = 23.99; // cm/ns
+    double rms_v = 0.07508; // cm/ns
+    double v;
+    
+    for (int i=0; i<number_photons; i++) {
+        v = gRandom->Gaus(mean_v,rms_v);
+        ReflTimes[i] = distance/v;
+    }
+    
+    return ReflTimes;
+}
+
+std::vector<double> utility::GetVisTime0thOrder(TVector3 ScintPoint, TVector3 OpDetPoint, int number_photons) {
+    /*
+    Attempts to perform a zeroth-order parametrization of the time distribution for reflected light in DUNE.
+    Looks only at the shortest-time path for light, where there are two contributions:
+     - VUV light towards the cathode; time through GetVUVTime() function
+     - reflected visible light back towards APA; distance constant but velocity tightly Gaussian-distributed
+    INPUTS:
+     - TVector3 ScintPoint: position of scintillation in DUNE (in cm)
+     - TVector3 OpDetPoint: position of photon detector in DUNE (in cm)
+     - number_photons:      number of photons produced in scintillation
+    OUTPUT:
+     - 1D vector array of times (in ns) for each produced photon
+    */
+    
+    //std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
+    TVector3 X = utility::GetShortestPathPoint(ScintPoint, OpDetPoint);
+    //std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+    double VUVdist = (X-ScintPoint).Mag();
+    double Visdist = (OpDetPoint-X).Mag();
+    //std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
+    std::vector<double> VUVTimes  = utility::GetVUVTime (VUVdist, number_photons);
+    //std::chrono::steady_clock::time_point t3 = std::chrono::steady_clock::now();
+    std::vector<double> ReflTimes = utility::GetReflTime(Visdist, number_photons);
+    //std::chrono::steady_clock::time_point t4 = std::chrono::steady_clock::now();
+    
+    std::vector<double> TotTimes(number_photons,0);
+    for (int i=0; i<number_photons; i++) {
+        TotTimes[i] = VUVTimes[i] + ReflTimes[i];
+    }
+    /*std::chrono::steady_clock::time_point t5 = std::chrono::steady_clock::now();
+    
+    std::chrono::duration<double> time1 = std::chrono::duration_cast<std::chrono::duration<double>>(t1-t0);
+    std::chrono::duration<double> time2 = std::chrono::duration_cast<std::chrono::duration<double>>(t2-t1);
+    std::chrono::duration<double> time3 = std::chrono::duration_cast<std::chrono::duration<double>>(t3-t2);
+    std::chrono::duration<double> time4 = std::chrono::duration_cast<std::chrono::duration<double>>(t4-t3);
+    std::chrono::duration<double> time5 = std::chrono::duration_cast<std::chrono::duration<double>>(t5-t4);
+    
+    std::cout << number_photons << "\t" << time1.count() << "\t" << time2.count() << "\t" << time3.count() << "\t" << time4.count() << "\t" << time5.count() << "\t";
+    std::cout << std::chrono::duration_cast<std::chrono::duration<double>>(t5-t0).count() << std::endl;*/
+    return TotTimes;
 }

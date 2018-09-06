@@ -20,7 +20,6 @@
 #include "TLegend.h"
 #include "TMarker.h"
 
-#include "utility_functions.h"
 
 using namespace std;
 
@@ -34,13 +33,21 @@ bool sort_function(std::pair<double, int> pair1, std::pair<double, int> pair2)
 //--------WHAT to generate?-------------
 ///-------------------------------------
 bool fixed_energy = false; double fixedE = 5.590; //MeV
-bool supernova = false;
+bool supernova = true;
 bool gen_argon = false;
-bool gen_radon = true;
+bool gen_radon = false;
+///-------------------------------------
+///-------------------------------------
+///-------DO TIMING CALCULATIONS?-------
+///-------------------------------------
+bool do_timings = true;
 ///-------------------------------------
 //--------WHERE to generate?-------------
 ///-------------------------------------
-bool random_pos = true;
+// CHOOSE 1 bool ONLY HERE!
+bool random_pos = true; // ONLY ONE TESTED FOR DUNE
+double PosMin[3] = {10,-600,300}; //For random_pos option, generate in this range
+double PosMax[3] = {330,600,1000};
 bool fixed_xpos = false; 
 bool fixed_pos = false;
 double fixedX = 100; // cm (x = 0 at cathode, x = 200 at PMTs)
@@ -73,7 +80,7 @@ bool reflT;
 //TTree branches and data products:
 //-------------------------------------
 TFile data_file("test.root", "RECREATE", "Timing PMT File");
-TFile event_file("event_file.root", "RECREATE", "Event File");
+TFile event_file("event_file_2000events_200tsamp.root", "RECREATE", "Event File");
 
 TTree *data_tree = new TTree("data_tree", "data tree");
 TTree *data_tree_vuv = new TTree("data_tree_vuv", "data tree_vuv");
@@ -101,6 +108,8 @@ double data_y_pos_vuv;
 double data_y_pos_vis;
 
 double data_z_pos;
+double data_z_pos_vuv;
+double data_z_pos_vis;
 
 int event_no;
 int event_vox;
@@ -139,7 +148,11 @@ const double Q_Rn = 5.590; // deposited energy from a radon decay - Rn-222 --> P
 ///-------------------------------------
 //----TPC and PMT properties---------------------
 ///-------------------------------------
-const double quantum_efficiency = 0.2; //Expected value
+// max. val from ARAPUCAs I've heard of, with mesh efficiency and original bar attenuation factor dealt with
+const double quantum_efficiency = 0.025*0.7/0.46; 
+const double catcov = 0.7; // Proportion of cathode covered by TPB
+const double vuvfrac = 0.4;
+const double visfrac = 1; // Inclusive mode for now!
 const double mass = 112000.; //SBND 112ton LAr
 const double time_window = 10.; //(0.0012 * 10.);//1.2 [ms] is the readout window
 const double time_frames = time_window/0.0012;
@@ -161,7 +174,7 @@ const int max_events_Rn = 10;
 const double Rn_decays_per_sec = activity_Rn* mass/2; // decay rate in one TPC
 
 // Supernova events:
-const int max_events_SN = 10000;
+const int max_events_SN = 2000;
 //int max_events_SN = utility::poisson(expected_sn,gRandom->Uniform(1.),1.);
 
 
@@ -178,16 +191,17 @@ LibraryAccess lar_light;
 //--Lists of variables for generating---
 vector<double> energy_list;
 vector<double> decay_time_list;
+vector<vector<double>> position_list;
 vector<int> voxel_list;
 //--------------------------------------
 //--------------------------------------
 //--Predefined number of PMTs for-------
 //--SBND configuration------------------
-int realisticPMT_IDs[60] = {0, 4, 8, 12, 16, 20, 24, 32, 40, 44, 48, 52, 56, 60, 64, 88, 92, 96, 100, 104, 108, 112, 120, 128, 132, 136, 140, 144, 148, 152, 154, 158, 162, 166, 170, 174, 178, 186, 194, 198, 202, 206, 210, 214, 218, 242, 246, 250, 254, 258, 262, 266, 274, 282, 286, 290, 294, 298, 302, 306};
+//int realisticPMT_IDs[60] = {0, 4, 8, 12, 16, 20, 24, 32, 40, 44, 48, 52, 56, 60, 64, 88, 92, 96, 100, 104, 108, 112, 120, 128, 132, 136, 140, 144, 148, 152, 154, 158, 162, 166, 170, 174, 178, 186, 194, 198, 202, 206, 210, 214, 218, 242, 246, 250, 254, 258, 262, 266, 274, 282, 286, 290, 294, 298, 302, 306};
 //--------------------------------------
 //--------------------------------------
 //--For timing parameterization---------
-const double signal_t_range = 1000.;
+//const double signal_t_range = 1000.;
 
 
 #endif
