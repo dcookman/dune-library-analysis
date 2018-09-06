@@ -310,8 +310,8 @@ std::vector<double> utility::GetVUVTime(double distance, int number_photons) {
     std::chrono::duration<double> time5 = std::chrono::duration_cast<std::chrono::duration<double>>(t5-t4);
     std::chrono::duration<double> time6 = std::chrono::duration_cast<std::chrono::duration<double>>(t6-t5);
     
-    std::cout << number_photons << "\t" << time1.count() << "\t" << time2.count() << "\t" << time3.count() << "\t" << time4.count() << "\t" << time5.count() << "\t" << time6.count() << "\t";
-    std::cout << std::chrono::duration_cast<std::chrono::duration<double>>(t6-t0).count() << std::endl;
+    //std::cout << number_photons << "\t" << time1.count() << "\t" << time2.count() << "\t" << time3.count() << "\t" << time4.count() << "\t" << time5.count() << "\t" << time6.count() << "\t";
+    //std::cout << std::chrono::duration_cast<std::chrono::duration<double>>(t6-t0).count() << std::endl;
 	//deleting ...
 /*
         delete fparslogNorm;

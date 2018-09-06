@@ -21,13 +21,14 @@
     std::vector<double> GetVisibleTimeFullConfig1(double t0, double tmean, double distance, int number_photons);
     std::vector<double> GetVisibleTimeFullConfig2(double t0, double tmean, double distance, int number_photons);
     double TimingParamReflected(TVector3 ScintPoint, TVector3 OpDetPoint );
+    std::vector<double> TimingParamReflected2(TVector3 ScintPoint, TVector3 OpDetPoint );
     double finter_d(double *x, double *par);
     double LandauPlusExpoFinal(double *x, double *par);
     double finter_r(double *x, double *par);
     double LandauPlusLandauFinal(double *x, double *par);
-    TVector3 utility::GetShortestPathPoint(TVector3 ScintPoint, TVector3 OpDetPoint);
-    std::vector<double> utility::GetReflTime(double distance, int number_photons);
-    std::vector<double> utility::GetVisTime0thOrder(TVector3 ScintPoint, TVector3 OpDetPoint, int number_photons);
+    TVector3 GetShortestPathPoint(TVector3 ScintPoint, TVector3 OpDetPoint);
+    std::vector<double> GetReflTime(double distance, int number_photons);
+    std::vector<double> GetVisTime0thOrder(TVector3 ScintPoint, TVector3 OpDetPoint, int number_photons);
   }
 
 #endif

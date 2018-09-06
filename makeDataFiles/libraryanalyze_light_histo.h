@@ -80,7 +80,7 @@ bool reflT;
 //TTree branches and data products:
 //-------------------------------------
 TFile data_file("test.root", "RECREATE", "Timing PMT File");
-TFile event_file("event_file_2000events_200tsamp.root", "RECREATE", "Event File");
+TFile event_file("event_file_100events_afterrestproblem.root", "RECREATE", "Event File");
 
 TTree *data_tree = new TTree("data_tree", "data tree");
 TTree *data_tree_vuv = new TTree("data_tree_vuv", "data tree_vuv");
@@ -174,7 +174,7 @@ const int max_events_Rn = 10;
 const double Rn_decays_per_sec = activity_Rn* mass/2; // decay rate in one TPC
 
 // Supernova events:
-const int max_events_SN = 2000;
+const int max_events_SN = 100;
 //int max_events_SN = utility::poisson(expected_sn,gRandom->Uniform(1.),1.);
 
 

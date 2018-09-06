@@ -376,10 +376,10 @@ int main() {
                     
                 vector<double> transport_time_vuv;
                 if(num_VUV != 0) {
-                    t_VUV_i = chrono::steady_clock::now();
+                    t_VUVTime_i = chrono::steady_clock::now();
                     transport_time_vuv = utility::GetVUVTime(distance_to_pmt, num_VUV);
-                    t_VUV_f = chrono::steady_clock::now();
-                    timespan_VUV += chrono::duration_cast<chrono::duration<double>>(t_VUV_f-t_VUV_i);
+                    t_VUVTime_f = chrono::steady_clock::now();
+                    timespan_VUV += chrono::duration_cast<chrono::duration<double>>(t_VUVTime_f-t_VUVTime_i);
                 }
                 
                 //This statement is to prvent issues when the parameterisation is not well defined
@@ -420,10 +420,10 @@ int main() {
                 ///////////////////////////////
                 vector<double> transport_time_vis;
                 if(num_VIS != 0 && config == 1) { //NOTE config == 1 is cathode foils configuration
-                    t_Refl_i = chrono::steady_clock::now();
+                    t_ReflTime_i = chrono::steady_clock::now();
                     transport_time_vis = utility::GetVisTime0thOrder(ScintPoint, OpDetPoint, num_VIS);
-                    t_Refl_f = chrono::steady_clock::now();
-                    timespan_Refl += chrono::duration_cast<chrono::duration<double>>(t_Refl_f-t_Refl_i);
+                    t_ReflTime_f = chrono::steady_clock::now();
+                    timespan_Refl += chrono::duration_cast<chrono::duration<double>>(t_ReflTime_f-t_ReflTime_i);
                     
                     double total_time_vis;
                     for(auto &y : transport_time_vis) { //looping through the transport_time_vis vector
